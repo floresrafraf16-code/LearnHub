@@ -9,7 +9,7 @@
             <v-icon color="white" size="32">mdi-school</v-icon>
           </v-avatar>
           <div>
-            <h2 class="text-h5 font-weight-bold">LearnHub</h2>
+            <h2 class="text-h5 font-weight-bold">UpSkill</h2>
             <p class="text-body-2 text-medium-emphasis">
               Video Learning Center
             </p>
@@ -72,8 +72,6 @@
       <v-col cols="12" lg="8">
         <v-card rounded="xl" elevation="3" class="overflow-hidden">
           <div class="video-container">
-
-            <!-- KEY FORCES A FRESH PLAYER WHEN VIDEO CHANGES -->
             <video
               :key="selectedVideo.id"
               ref="videoElement"
@@ -82,11 +80,8 @@
               playsinline
             />
 
-            <!-- SINGLE CUSTOM THUMBNAIL -->
-            <div
-              v-if="!isPlaying"
-              class="video-thumbnail"
-            >
+            <!-- CUSTOM THUMBNAIL -->
+            <div v-if="!isPlaying" class="video-thumbnail">
               <img
                 :src="selectedVideo.poster"
                 :alt="selectedVideo.title"
@@ -298,7 +293,7 @@
     <v-divider class="my-8" />
 
     <div class="text-center text-caption text-medium-emphasis pb-4">
-      © 2026 LearnHub. All rights reserved.
+      © 2026 UpSkill | Learn. Improve. Achieve.
     </div>
   </v-container>
 </template>
@@ -374,6 +369,7 @@ const isPlaying = ref(false)
 const playerReady = ref(false)
 
 let player: any = null
+let playbackTimeout: ReturnType<typeof setTimeout> | null = null
 
 const categories = computed(() => [
   'All',
@@ -396,7 +392,15 @@ const filteredVideos = computed(() => {
   })
 })
 
+function clearPlaybackTimeout() {
+  if (playbackTimeout) {
+    clearTimeout(playbackTimeout)
+    playbackTimeout = null
+  }
+}
+
 function disposePlayer() {
+  clearPlaybackTimeout()
   playerReady.value = false
 
   if (player && !player.isDisposed()) {
@@ -406,9 +410,11 @@ function disposePlayer() {
   player = null
 }
 
+
 async function initializePlayer() {
   playerReady.value = false
   playerError.value = ''
+  isPlaying.value = false
 
   try {
     await nextTick()
@@ -419,6 +425,18 @@ async function initializePlayer() {
       throw new Error('Video element is not available.')
     }
 
+    // Validate YouTube video ID before initializing Video.js.
+    const videoId = selectedVideo.value.id
+
+    const isValidVideoId = /^[a-zA-Z0-9_-]{11}$/.test(videoId)
+
+    if (!isValidVideoId) {
+      playerError.value =
+        'Invalid video ID. Please select another video.'
+
+      return
+    }
+
     const videojsModule = await import('video.js')
     const videojs = videojsModule.default
 
@@ -427,7 +445,6 @@ async function initializePlayer() {
     // @ts-expect-error videojs-youtube has no TypeScript declarations
     await import('videojs-youtube')
 
-    // Confirm that the current video element still exists.
     if (!element.isConnected || videoElement.value !== element) {
       return
     }
@@ -447,7 +464,7 @@ async function initializePlayer() {
 
       sources: [
         {
-          src: `https://www.youtube.com/watch?v=${selectedVideo.value.id}`,
+          src: `https://www.youtube.com/watch?v=${videoId}`,
           type: 'video/youtube'
         }
       ],
@@ -464,8 +481,20 @@ async function initializePlayer() {
 
     currentPlayer.on('error', () => {
       if (player === currentPlayer) {
+        clearPlaybackTimeout()
+
         playerError.value =
           'Unable to load this video. Please try another video.'
+
+        isPlaying.value = false
+      }
+    })
+
+    currentPlayer.on('playing', () => {
+      if (player === currentPlayer) {
+        clearPlaybackTimeout()
+        playerError.value = ''
+        isPlaying.value = true
       }
     })
 
@@ -479,9 +508,10 @@ async function initializePlayer() {
     console.error('Video.js initialization error:', error)
 
     playerError.value =
-      'The video player could not be initialized. Please check the browser console.'
+      'The video player could not be initialized. Please check your browser and try again.'
   }
 }
+
 
 function startVideo() {
   if (!player || !playerReady.value || player.isDisposed()) return
@@ -489,12 +519,36 @@ function startVideo() {
   isPlaying.value = true
   playerError.value = ''
 
-  const playPromise = player.play()
+  clearPlaybackTimeout()
+
+  const currentPlayer = player
+
+  // Fallback for YouTube errors that do not trigger Video.js error events.
+  playbackTimeout = setTimeout(() => {
+    if (
+      player === currentPlayer &&
+      !currentPlayer.isDisposed() &&
+      currentPlayer.paused()
+    ) {
+      playerError.value =
+        'Unable to load or play this video. Please check your connection or try another video.'
+
+      isPlaying.value = false
+      playbackTimeout = null
+    }
+  }, 15000)
+
+  const playPromise = currentPlayer.play()
 
   if (playPromise && typeof playPromise.catch === 'function') {
     playPromise.catch((error: unknown) => {
       console.warn('Playback could not start:', error)
-      playerError.value = 'Unable to start playback. Please try again.'
+
+      clearPlaybackTimeout()
+
+      playerError.value =
+        'Unable to start playback. Please try again.'
+
       isPlaying.value = false
     })
   }
@@ -516,10 +570,7 @@ async function selectVideo(video: LearningVideo) {
     behavior: 'smooth'
   })
 
-  // Wait for Vue to replace the old video element using its new key.
   await nextTick()
-
-  // Initialize the player on the newly created element.
   await initializePlayer()
 }
 
@@ -546,6 +597,7 @@ function togglePlayback() {
   if (player.paused()) {
     player.play()?.catch((error: unknown) => {
       console.warn('Playback could not start:', error)
+      playerError.value = 'Unable to start playback. Please try again.'
     })
   } else {
     player.pause()

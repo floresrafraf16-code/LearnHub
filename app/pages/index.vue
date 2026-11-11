@@ -19,7 +19,7 @@ const { user, logout } = useAuth()
         </v-avatar>
 
         <v-toolbar-title class="font-weight-bold">
-          LearnHub
+          UpSkill
         </v-toolbar-title>
 
         <v-spacer />
@@ -46,7 +46,7 @@ const { user, logout } = useAuth()
           class="pa-6 pa-md-8"
         >
           <p class="text-overline">
-            LEARNHUB DASHBOARD
+            UPSKILL DASHBOARD
           </p>
 
           <h1 class="text-h4 font-weight-bold mb-3">
@@ -54,8 +54,7 @@ const { user, logout } = useAuth()
           </h1>
 
           <p class="text-body-1">
-            Ready to continue your learning journey?
-            Explore educational videos and learn something new today.
+            A digital learning platform where users can explore educational videos and develop new skills.
           </p>
         </v-card>
 
@@ -171,7 +170,7 @@ const { user, logout } = useAuth()
 
     <!-- FOOTER -->
     <div class="text-center text-caption text-grey mt-8">
-      © 2026 LearnHub | Learn without limits.
+      © 2026 UpSkill | Learn. Improve. Achieve.
     </div>
 
   </v-container>

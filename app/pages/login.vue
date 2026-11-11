@@ -31,7 +31,7 @@ onMounted(() => {
                 </v-avatar>
 
                 <span class="text-h6 font-weight-bold">
-                  LearnHub
+                  UpSkill
                 </span>
               </div>
 
@@ -41,12 +41,12 @@ onMounted(() => {
                 </p>
 
                 <h1 class="text-h3 font-weight-bold mb-5">
-                  Learn without limits.
+                  Learn. Improve. Achieve.
                 </h1>
 
                 <p class="text-body-1">
-                  Explore educational videos, discover new skills,
-                  and learn at your own pace with LearnHub.
+                  A digital learning platform where 
+                  users can explore educational videos and develop new skills.
                 </p>
 
                 <v-icon size="90" class="mt-8 play-icon">
@@ -55,7 +55,7 @@ onMounted(() => {
               </div>
 
               <div class="text-body-2 mt-auto">
-                © 2026 LearnHub. All rights reserved.
+                © 2026 UpSkill | Learn. Improve. Achieve.
               </div>
             </v-col>
 
@@ -107,7 +107,7 @@ onMounted(() => {
               </v-alert>
 
               <p class="text-center text-body-2 text-grey mt-8">
-                By continuing, you agree to use LearnHub responsibly
+                By continuing, you agree to use UpSkill responsibly
                 for educational purposes.
               </p>
             </v-col>
